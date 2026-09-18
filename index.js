@@ -1,6 +1,6 @@
 import { saveSettingsDebounced } from '../../../../script.js';
 import { extension_settings } from '../../../extensions.js';
-import { getSortableDelay, showFontAwesomePicker } from '../../../utils.js';
+import { download, getFileText, getSortableDelay, showFontAwesomePicker } from '../../../utils.js';
 import { callGenericPopup, POPUP_RESULT, POPUP_TYPE } from '../../../popup.js';
 import { addLocaleData, getCurrentLocale, t } from '../../../i18n.js';
 
@@ -390,6 +390,70 @@ function renderToolbar() {
     $('#send_form').append(toolbar);
 }
 
+// ---------- 버튼 세트 주고받기 ----------
+
+// 남이 만든 파일을 읽어들이므로, 우리 파일이 맞는지 볼 표시를 하나 넣어 둔다
+const EXPORT_TYPE = 'st-markdown-toolbar';
+const EXPORT_NAME = 'markdown-toolbar-buttons.json';
+const ACTIONS = ['wrap', 'prefix', 'newline'];
+
+// 설정에 들어가도 되는 형태로만 추린다. 파일은 남이 만든 것이라 값의 종류부터 의심한다.
+// 글자가 아닌 값이 left 에 들어오면 감쌀 때 터지고, 길이를 안 자르면 설정 파일이 부풀어 오른다
+function normalizeButton(raw, index) {
+    if (!raw || typeof raw !== 'object') return null;
+
+    const text = (value, limit) => typeof value === 'string' ? value.slice(0, limit) : '';
+
+    return {
+        id: Date.now() + index,
+        // 아이콘 클래스는 속성값으로 그대로 들어가므로 여기서도 형태를 확인한다
+        icon: /^fa-[a-z0-9-]+$/i.test(raw.icon) ? raw.icon : '',
+        label: text(raw.label, 32),
+        left: text(raw.left, 64),
+        right: text(raw.right, 64),
+        title: text(raw.title, 64),
+        action: ACTIONS.includes(raw.action) ? raw.action : 'wrap',
+        enabled: raw.enabled !== false,
+    };
+}
+
+function buildExportFile() {
+    const settings = extension_settings[MODULE_NAME];
+
+    return JSON.stringify({
+        type: EXPORT_TYPE,
+        version: 1,
+        visibleCount: Number(settings.visibleCount) || 0,
+        buttons: settings.buttons.map(normalizeButton).filter(Boolean),
+    }, null, 4);
+}
+
+// 파일에서 쓸 만한 버튼만 꺼내 온다. 못 쓰는 파일이면 이유를 들고 예외를 던진다
+async function readButtonFile(file) {
+    let data;
+
+    // ST 의 parseJsonFile 은 JSON.parse 를 FileReader 의 onload 안에서 부른다.
+    // 깨진 파일이면 예외가 이벤트 쪽으로 새서 약속이 영영 끝나지 않으므로, 글만 읽어와 여기서 해석한다
+    try {
+        data = JSON.parse(await getFileText(file));
+    } catch {
+        throw new Error(t`That file is not JSON.`);
+    }
+
+    if (!data || typeof data !== 'object' || data.type !== EXPORT_TYPE) {
+        throw new Error(t`That file is not a Markdown Toolbar button set.`);
+    }
+
+    // 눌러도 아무 일이 없는 버튼은 받아 봐야 목록만 어지럽힌다
+    const buttons = Array.isArray(data.buttons)
+        ? data.buttons.map(normalizeButton).filter(btn => btn && !isBlankButton(btn))
+        : [];
+
+    if (!buttons.length) throw new Error(t`There are no usable buttons in that file.`);
+
+    return { buttons, visibleCount: Number(data.visibleCount) || 0 };
+}
+
 function renderSettingsUI() {
     const settings = extension_settings[MODULE_NAME];
     const container = $('<div class="custom-md-settings"></div>');
@@ -626,6 +690,15 @@ function renderSettingsUI() {
     container.append(listContainer);
 
     const listActions = $('<div class="qsg-list-actions"></div>');
+    // 자주 쓰는 '추가' 만 글자로 두고, 나머지는 아이콘으로 묶어 오른쪽에 붙인다
+    const sideActions = $('<div class="qsg-list-actions-side"></div>');
+
+    // 아이콘만 있는 버튼은 화면 낭독기에 읽을 것이 없으므로 이름을 따로 달아 준다
+    function makeIconAction(icon, label) {
+        return $('<button type="button" class="menu_button fa-solid qsg-quiet-button"></button>')
+            .addClass(icon)
+            .attr({ title: label, 'aria-label': label });
+    }
 
     const addBtn = $('<button type="button" class="menu_button"></button>').text(t`+ Add button`);
     addBtn.on('click', () => {
@@ -653,7 +726,7 @@ function renderSettingsUI() {
     listActions.append(addBtn);
 
     // 기본 버튼은 첫 설치 때만 들어가므로, 나중에 다시 받을 길을 열어 둔다
-    const resetBtn = $('<button type="button" class="menu_button qsg-quiet-button"></button>').text(t`Restore defaults`);
+    const resetBtn = makeIconAction('fa-undo', t`Restore defaults`);
     resetBtn.on('click', async () => {
         const confirmed = await callGenericPopup(
             t`Replace the list with the default buttons? Buttons you made yourself will be gone.`,
@@ -669,7 +742,64 @@ function renderSettingsUI() {
         renderToolbar();
         refreshList();
     });
-    listActions.append(resetBtn);
+    sideActions.append(resetBtn);
+
+    const exportBtn = makeIconAction('fa-file-export', t`Export`);
+    exportBtn.on('click', () => download(buildExportFile(), EXPORT_NAME, 'application/json'));
+    sideActions.append(exportBtn);
+
+    // 파일 창을 여는 용도라서 화면에는 두지 않는다
+    const fileInput = $('<input type="file" accept="application/json,.json" hidden>');
+    const importBtn = makeIconAction('fa-file-import', t`Import`);
+
+    importBtn.on('click', () => fileInput.trigger('click'));
+
+    fileInput.on('change', async function() {
+        const file = this.files?.[0];
+        // 같은 파일을 다시 골라도 change 가 오도록 비워 둔다
+        this.value = '';
+        if (!file) return;
+
+        let loaded;
+
+        try {
+            loaded = await readButtonFile(file);
+        } catch (error) {
+            // 문자열로 넘기면 ST 가 innerHTML 로 그린다. 요소로 만들어 본문을 텍스트로 고정
+            const reason = document.createElement('div');
+            reason.textContent = error.message;
+            await callGenericPopup(reason, POPUP_TYPE.TEXT);
+            return;
+        }
+
+        const count = loaded.buttons.length;
+        const message = document.createElement('div');
+        message.textContent = t`Found ${count} buttons.`;
+
+        const choice = await callGenericPopup(message, POPUP_TYPE.CONFIRM, '', {
+            okButton: t`Replace my list`,
+            cancelButton: t`Cancel`,
+            customButtons: [{ text: t`Add to the end`, result: POPUP_RESULT.CUSTOM1 }],
+        });
+
+        if (choice === POPUP_RESULT.AFFIRMATIVE) {
+            settings.buttons = loaded.buttons;
+            // 몇 개를 펼쳐 둘지도 세트를 만든 사람이 정한 값이 있다
+            settings.visibleCount = loaded.visibleCount;
+            countRow.find('input').val(settings.visibleCount);
+        } else if (choice === POPUP_RESULT.CUSTOM1) {
+            settings.buttons = settings.buttons.concat(loaded.buttons);
+        } else {
+            return;
+        }
+
+        saveSettingsDebounced();
+        renderToolbar();
+        refreshList();
+    });
+
+    sideActions.append(importBtn, fileInput);
+    listActions.append(sideActions);
 
     container.append(listActions);
 

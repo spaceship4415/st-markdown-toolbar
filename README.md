@@ -14,6 +14,7 @@ Wrap the selection in `**bold**`, turn the current line into a `> quote`, or ope
 - **Reaches the message you are editing** — the buttons act on whichever box your cursor was last in, so they work while you rewrite a reply, not just in the input line.
 - **Live preview** — every row shows what you will get, with `|` marking where the cursor lands.
 - **Drag to reorder**, toggle a button off without deleting it, and fold extra buttons into a `...` menu to keep the toolbar short.
+- **Share a set** — export your buttons to a `.json` file and import someone else's, either replacing your list or adding to the end.
 - **Localized** — English by default, Korean included.
 
 ## Install
@@ -31,6 +32,7 @@ Extensions → **Markdown Toolbar**.
 | Enable markdown toolbar | Shows or hides the whole toolbar |
 | Buttons shown in the toolbar | `0` shows them all; otherwise the rest move into a `...` menu |
 | Buttons | Add, edit, reorder, disable or delete individual buttons |
+| Export / Import | Save the button set to a file, or load one. Importing asks whether to replace your list or add to the end |
 
 Open a row to set its **name** (the tooltip), **icon or custom label**, **insert mode** and **symbols**.
 A button with no symbols does nothing, so it is marked in the list and left out of the toolbar.
@@ -43,6 +45,7 @@ Drop a `<locale>.json` next to `i18n/ko-kr.json` — keys are the English string
 
 - Custom labels are plain text. Emoji and short labels render as typed; markup never does. The extension renders no HTML from its settings, so a shared button set cannot run scripts or pull in remote images.
 - Settings live in SillyTavern's own settings file, so they follow your profile.
+- An imported file is read as data, never as markup: names and symbols are trimmed to a sane length, an icon is taken only if it looks like a Font Awesome class, and buttons that would do nothing are dropped.
 
 ## Custom CSS
 

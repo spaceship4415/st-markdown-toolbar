@@ -33,6 +33,7 @@
     }
 }
 
+
 } /* @layer qsg-defaults */
 
 /* ---------- 입력창 위 툴바 ---------- */
@@ -312,12 +313,38 @@
 }
 
 /* 파괴적이지만 자주 쓰지 않는 동작 — 눈에 덜 띄게, 오른쪽 끝으로 */
-.custom-md-settings .qsg-list-actions .qsg-quiet-button {
+/* 오른쪽으로 미는 건 묶음 하나가 맡는다.
+   버튼마다 margin-left: auto 를 주면 저마다 오른쪽으로 밀려 줄이 쪼개진다 */
+.custom-md-settings .qsg-list-actions-side {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
     margin-left: auto;
+}
+
+/* 아이콘만 있는 버튼이라 글자 버튼처럼 폭이 잡히지 않는다. 누를 만한 크기를 직접 준다 */
+.custom-md-settings .qsg-list-actions-side .menu_button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    min-height: 28px;
+}
+
+/* 설정창 아이콘 버튼도 손가락으로 누른다.
+   이 규칙은 레이어 밖에 둬야 한다. 레이어 안에 있으면 선택자가 더 구체적이어도
+   ST 의 레이어 없는 .menu_button 규칙에 밀린다 */
+@media (pointer: coarse) {
+    .custom-md-settings .qsg-list-actions-side .menu_button {
+        min-width: 38px;
+        min-height: 34px;
+    }
+}
+
+.custom-md-settings .qsg-list-actions .qsg-quiet-button {
     border-color: transparent;
     background: none;
-    opacity: 0.55;
-    font-size: 0.9em;
+    opacity: 0.6;
 }
 
 .custom-md-settings .qsg-list-actions .qsg-quiet-button:hover {
