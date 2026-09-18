@@ -615,6 +615,41 @@ async function readButtonFile(file) {
     return { buttons, visibleCount: Number(data.visibleCount) || 0 };
 }
 
+// 손잡이를 끄는 건 모바일에서 0.75초 길게 눌러야 시작되고, 목록이 길면 끌고 가기도 번거롭다.
+// 자리를 옮기는 또 다른 길을 상세 패널에 둔다
+function moveButtonTo(item, listContainer, target) {
+    const settings = extension_settings[MODULE_NAME];
+    const from = Number(item.attr('data-index'));
+    const to = Math.min(Math.max(target, 0), settings.buttons.length - 1);
+    if (to === from || Number.isNaN(from)) return;
+
+    const [moved] = settings.buttons.splice(from, 1);
+    settings.buttons.splice(to, 0, moved);
+
+    // 목록을 통째로 다시 그리면 펼쳐 둔 행이 닫힌다. 줄만 옮기고 번호를 다시 매긴다
+    const others = listContainer.children('.qsg-item').not(item);
+    item.detach();
+    to === 0 ? listContainer.prepend(item) : item.insertAfter(others.eq(to - 1));
+    listContainer.children('.qsg-item').each((index, el) => el.setAttribute('data-index', String(index)));
+
+    refreshMoveButtons(listContainer);
+    saveSettingsDebounced();
+    renderToolbar();
+    item[0].scrollIntoView({ block: 'nearest' });
+}
+
+// 맨 위에서 '위로', 맨 아래에서 '아래로' 는 할 일이 없다. 눌리지 않게 해서 그걸 알린다
+function refreshMoveButtons(listContainer) {
+    const rows = listContainer.children('.qsg-item');
+    const last = rows.length - 1;
+
+    rows.each((index, el) => {
+        const row = $(el);
+        row.find('.qsg-move-top, .qsg-move-up').prop('disabled', index === 0);
+        row.find('.qsg-move-bottom, .qsg-move-down').prop('disabled', index === last);
+    });
+}
+
 // 삭제는 이 확장에서 유일하게 되돌릴 수 없는 동작이다. 확인창을 눌러 놓고 곧바로
 // 아차 하는 경우가 있어서, 잠깐 물러설 자리를 만들어 둔다.
 // toastr 는 ST 가 <script> 로 띄워 둔 전역이고 escapeHtml 을 켜 두어서 이름을 그대로 넣어도 된다
@@ -718,6 +753,13 @@ function renderSettingsUI() {
                             <span class="qsg-label-result"></span>
                             <code class="qsg-preview qsg-preview-lg"></code>
                         </div>
+                        <div class="qsg-field qsg-move-row">
+                            <span class="qsg-label-move"></span>
+                            <button type="button" class="menu_button qsg-move qsg-move-top"><i class="fa-solid fa-angles-up"></i></button>
+                            <button type="button" class="menu_button qsg-move qsg-move-up"><i class="fa-solid fa-angle-up"></i></button>
+                            <button type="button" class="menu_button qsg-move qsg-move-down"><i class="fa-solid fa-angle-down"></i></button>
+                            <button type="button" class="menu_button qsg-move qsg-move-bottom"><i class="fa-solid fa-angles-down"></i></button>
+                        </div>
                         <div class="qsg-field qsg-detail-foot">
                             <button type="button" class="menu_button qsg-delete"></button>
                         </div>
@@ -740,6 +782,20 @@ function renderSettingsUI() {
             item.find('.qsg-label-result').text(t`You get`);
             item.find('.qsg-enable-toggle').attr({ title: t`Use this button`, 'aria-label': t`Use this button` });
             item.find('.qsg-delete').text(t`Delete`);
+            item.find('.qsg-label-move').text(t`Order`);
+
+            const moves = [
+                ['.qsg-move-top', t`Move to top`, () => 0],
+                ['.qsg-move-up', t`Move up`, index => index - 1],
+                ['.qsg-move-down', t`Move down`, index => index + 1],
+                ['.qsg-move-bottom', t`Move to bottom`, () => settings.buttons.length - 1],
+            ];
+
+            moves.forEach(([selector, label, target]) => {
+                item.find(selector)
+                    .attr({ title: label, 'aria-label': label })
+                    .on('click', () => moveButtonTo(item, listContainer, target(Number(item.attr('data-index')))));
+            });
 
             function refreshItem() {
                 const blank = isBlankButton(btn);
@@ -850,6 +906,8 @@ function renderSettingsUI() {
 
             listContainer.append(item);
         });
+
+        refreshMoveButtons(listContainer);
     }
 
     refreshList();
@@ -864,6 +922,7 @@ function renderSettingsUI() {
                 el.setAttribute('data-index', String(newIndex));
                 return moved;
             }).get();
+            refreshMoveButtons(listContainer);
             saveSettingsDebounced();
             renderToolbar();
         },

@@ -268,6 +268,35 @@
     opacity: 0.75;
 }
 
+/* 순서를 옮기는 화살표 넷. 손잡이를 끌지 않고도 자리를 바꿀 수 있게 둔 것이라
+   이름표만 앞에 두고 나머지 자리는 버튼들이 고르게 나눠 갖는다 */
+.custom-md-settings .qsg-move-row {
+    gap: 4px;
+}
+
+.custom-md-settings .qsg-move {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 34px;
+    margin: 0;
+    padding: 4px 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 맨 위에서 더 올릴 곳은 없다. 흐리게 두되 자리는 지켜서 줄이 흔들리지 않게 한다 */
+.custom-md-settings .qsg-move:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+@media (pointer: coarse) {
+    .custom-md-settings .qsg-move {
+        min-height: 32px;
+    }
+}
+
 /* 켜기/끄기가 요약 줄로 올라가서 이 줄에는 삭제만 남는다 */
 .custom-md-settings .qsg-detail-foot {
     justify-content: flex-end;

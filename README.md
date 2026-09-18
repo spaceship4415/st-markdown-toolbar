@@ -16,7 +16,8 @@ Wrap the selection in `**bold**`, turn the current line into a `> quote`, or ope
 - **Icons chosen for you** — type a symbol and a matching Font Awesome icon is suggested. Pick a different one from the built-in icon picker, or show an emoji or a short label instead.
 - **Reaches the message you are editing** — the buttons act on whichever box your cursor was last in, so they work while you rewrite a reply, not just in the input line.
 - **Live preview** — every row shows what you will get, with `|` marking where the cursor lands.
-- **Drag to reorder**, toggle a button off without deleting it, and fold extra buttons into a `...` menu to keep the toolbar short.
+- **Drag to reorder** — or open a button and send it up, down, to the top or to the bottom, which is easier than dragging on a phone.
+  Toggle a button off without deleting it, and fold extra buttons into a `...` menu to keep the toolbar short.
 - **Ready-made buttons** — pick from the ones a roleplay actually uses: `***strong emphasis***`, an inline `(OOC: )` note, underline, a status block, a bullet list, a `---` scene break, and the `{{user}}`, `{{char}}` and `{{roll:d20}}` macros.
 - **Share a set** — export your buttons to a `.json` file and import someone else's, either replacing your list or adding to the end.
 - **Gets out of the way** — optionally hide the toolbar until you tap the message box, so it does not hold a row on a small screen.
