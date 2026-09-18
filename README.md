@@ -66,10 +66,9 @@ out of `i18n/ko-kr.json` rather than retyping them from the English text.
 The toolbar reads a handful of custom properties, so most tweaks are one line in
 **User Settings → Custom CSS** — no need to fight the extension's own rules.
 
-On a touch device the buttons grow to roughly the size of SillyTavern's own
-buttons, so they are not the smallest thing on the screen to hit. Three of the
-properties below have a second default for that case; setting them yourself
-overrides both.
+On a touch device the buttons sit a little further apart, so a neighbour is
+harder to hit by accident. Two of the properties below have a second default for
+that case; setting them yourself overrides both.
 
 ```css
 :root {
@@ -87,7 +86,7 @@ overrides both.
 | `--qsg-toolbar-gap` | `6px`, `8px` on touch | Space between buttons |
 | `--qsg-toolbar-padding` | `0 10px` | |
 | `--qsg-toolbar-margin` | `0 0 3px`, `0 0 5px` on touch | Gap to the input row below |
-| `--qsg-button-padding` | `3px 8px`, `9px 10px` on touch | What makes the button a comfortable size to tap |
+| `--qsg-button-padding` | `3px 8px` | Raise it to make the buttons taller |
 | `--qsg-button-min-width` | icon size + 18px | Keeps icon buttons an even width |
 | `--qsg-button-max-width` | `140px` | Keeps a long label from eating the row |
 | `--qsg-overflow-max-width` | `min(90vw, 320px)` | Where the `...` menu starts wrapping to a second row |
