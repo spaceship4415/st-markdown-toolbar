@@ -1,6 +1,8 @@
 {
     "Markdown Toolbar": "마크다운 툴바 설정",
     "Enable markdown toolbar": "마크다운 툴바 활성화",
+    "Show only while writing": "글 쓸 때만 보이기",
+    "The toolbar stays out of the way until you tap the message box.": "입력창이나 편집창에 커서를 두면 나타나고, 그 전에는 숨어 있습니다.",
     "Buttons shown in the toolbar": "툴바에 보일 버튼 수",
     "0 shows them all. Otherwise the rest go into a \"...\" menu.": "0이면 전부 보입니다. 그 외에는 나머지가 ⋯ 안으로 들어가요.",
     "Buttons": "버튼 목록",

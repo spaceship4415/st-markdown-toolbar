@@ -79,6 +79,17 @@
     line-height: 1;
 }
 
+/* '쓸 때만 보이기' 로 자리를 비운 상태. display:none 대신 높이를 접어서
+   나타날 때 입력창이 덜컥 튀지 않게 한다 */
+#custom-md-toolbar.qsg-toolbar-hidden {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
 /* ---------- 설정창 공통 ---------- */
 .custom-md-settings .qsg-off {
     display: none !important;

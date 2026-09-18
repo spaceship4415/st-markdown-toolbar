@@ -14,6 +14,7 @@ Wrap the selection in `**bold**`, turn the current line into a `> quote`, or ope
 - **Reaches the message you are editing** — the buttons act on whichever box your cursor was last in, so they work while you rewrite a reply, not just in the input line.
 - **Live preview** — every row shows what you will get, with `|` marking where the cursor lands.
 - **Drag to reorder**, toggle a button off without deleting it, and fold extra buttons into a `...` menu to keep the toolbar short.
+- **Gets out of the way** — optionally hide the toolbar until you tap the message box, so it does not hold a row on a small screen.
 - **Share a set** — export your buttons to a `.json` file and import someone else's, either replacing your list or adding to the end.
 - **Localized** — English by default, Korean included.
 
@@ -30,6 +31,7 @@ Extensions → **Markdown Toolbar**.
 | Setting | What it does |
 | --- | --- |
 | Enable markdown toolbar | Shows or hides the whole toolbar |
+| Show only while writing | Keeps the toolbar hidden until the message box or a message you are editing has the cursor |
 | Buttons shown in the toolbar | `0` shows them all; otherwise the rest move into a `...` menu |
 | Buttons | Add, edit, reorder, disable or delete individual buttons |
 | Export / Import | Save the button set to a file, or load one. Importing asks whether to replace your list or add to the end |

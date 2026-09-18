@@ -81,6 +81,11 @@ function loadSettings() {
         settings.visibleCount = 0;
     }
 
+    if (settings.hideWhenIdle === undefined) {
+        settings.hideWhenIdle = false;
+    }
+
+
     // 설정 파일이 손상돼 있어도 확장이 통째로 죽지는 않게
     if (!Array.isArray(settings.buttons)) {
         settings.buttons = getDefaultButtons();
@@ -289,14 +294,32 @@ function getActiveTextarea() {
 
 // ST 는 입력창과 메시지 편집창을 같은 서식 대상으로 친다 (양쪽 다 mdHotkeys 가 붙는다).
 // 툴바도 같이 따라가도록, 커서가 놓인 쪽을 기억해 둔다
+function isTargetTextarea(el) {
+    return el instanceof HTMLTextAreaElement
+        && (el.id === 'send_textarea' || el.classList.contains('edit_textarea'));
+}
+
+// '쓸 때만 보이기' 를 켜면 글을 쓰는 동안에만 툴바가 나온다.
+// 좁은 세로 화면에서 한 줄을 늘 차지하는 게 부담이라는 이유로 둔 설정이다
+function updateToolbarVisibility() {
+    const settings = extension_settings[MODULE_NAME];
+    const hide = settings.hideWhenIdle && !isTargetTextarea(document.activeElement);
+    $('#custom-md-toolbar').toggleClass('qsg-toolbar-hidden', !!hide);
+}
+
 function watchFocusedTextarea() {
     document.addEventListener('focusin', event => {
-        const el = event.target;
-        if (!(el instanceof HTMLTextAreaElement)) return;
-        if (el.id !== 'send_textarea' && !el.classList.contains('edit_textarea')) return;
-
-        lastFocused = el;
+        if (isTargetTextarea(event.target)) lastFocused = event.target;
+        updateToolbarVisibility();
     });
+
+    // 포커스가 빠져나간 '다음' 상태를 봐야 한다. focusout 시점에는 아직 옮겨가기 전이다.
+    // 툴바 버튼을 누를 때는 mousedown 을 막아 둬서 포커스가 그대로라 사라지지 않는다
+    document.addEventListener('focusout', () => setTimeout(updateToolbarVisibility, 0));
+
+    // 창이 포커스를 잃은 동안에는 focusin 이 오지 않는다. 입력창에 커서를 둔 채 다른 창에
+    // 다녀오면 돌아와도 숨은 채로 남으므로, 돌아온 시점에 한 번 다시 본다
+    window.addEventListener('focus', updateToolbarVisibility);
 }
 
 function runButton(btn, textarea) {
@@ -415,6 +438,7 @@ function renderToolbar() {
 
     // #send_form 은 order 로 줄을 쌓는 wrap 플렉스다. 입력 줄(order 25) 위에 자기 줄을 차지하게 둔다
     $('#send_form').append(toolbar);
+    updateToolbarVisibility();
 }
 
 // ---------- 버튼 세트 주고받기 ----------
@@ -493,6 +517,16 @@ function renderSettingsUI() {
         renderToolbar();
     });
     container.append(toggleRow);
+
+    const hideRow = $('<label class="checkbox_label"><input type="checkbox"/><span></span><small class="qsg-note"></small></label>');
+    hideRow.find('span').text(t`Show only while writing`);
+    hideRow.find('small').text(t`The toolbar stays out of the way until you tap the message box.`);
+    hideRow.find('input').prop('checked', !!settings.hideWhenIdle).on('change', function() {
+        settings.hideWhenIdle = this.checked;
+        saveSettingsDebounced();
+        updateToolbarVisibility();
+    });
+    container.append(hideRow);
 
     const countRow = $('<label class="qsg-field"><span></span><input type="number" class="text_pole qsg-visible-count" min="0" max="30" step="1"/><small class="qsg-note"></small></label>');
     countRow.find('span').text(t`Buttons shown in the toolbar`);
