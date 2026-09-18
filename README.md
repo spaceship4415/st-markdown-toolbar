@@ -41,6 +41,10 @@ A button with no symbols does nothing, so it is marked in the list and left out 
 
 Drop a `<locale>.json` next to `i18n/ko-kr.json` — keys are the English strings — and add the locale id to `i18n/locales.json`.
 
+Where a string has something filled into it, the key numbers the slots instead of
+naming them, so the key for `Delete ${name}?` is `"Delete ${0}?"`. Copy the keys
+out of `i18n/ko-kr.json` rather than retyping them from the English text.
+
 ## Notes
 
 - Custom labels are plain text. Emoji and short labels render as typed; markup never does. The extension renders no HTML from its settings, so a shared button set cannot run scripts or pull in remote images.
@@ -92,13 +96,22 @@ For anything the properties do not cover, these hooks are stable:
 | `.qsg-item-disabled` / `.qsg-item-blank` | A button that is turned off / has no symbols |
 
 Buttons are plain `<button class="menu_button text_button">`, so they inherit your
-theme. To style one specific button, match it on its name:
+theme. To style one specific button, match it on its position, which does not
+depend on what the button is called:
 
 ```css
-#custom-md-toolbar button[title="OOC / Quote"] {
+/* the fifth button in the row */
+#custom-md-toolbar button:nth-child(5) {
     color: var(--SmartThemeQuoteColor);
 }
 ```
+
+A button's `title` is the name you gave it, so it can be matched on too — but
+only with the name exactly as it reads in your own settings. The buttons that
+ship with the extension are named in whatever language SillyTavern was set to
+when they were first created, and that name is then saved with them, so
+`button[title="OOC / Quote"]` finds nothing on an install where it was created
+as `OOC/인용`.
 
 ## License
 
