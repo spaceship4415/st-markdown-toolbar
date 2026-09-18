@@ -462,6 +462,8 @@ function renderToolbar() {
 // 이름은 고른 시점의 언어로 굳으므로 t 로 감싼다 (기본 버튼과 같은 방식)
 function getPresetButtons() {
     return [
+        { icon: 'fa-bolt', label: '', left: '***', right: '***', title: t`Strong emphasis`, action: 'wrap' },
+        { icon: 'fa-comment-dots', label: '', left: '(OOC: ', right: ')', title: t`OOC note`, action: 'wrap' },
         { icon: 'fa-underline', label: '', left: '__', right: '__', title: t`Underline`, action: 'wrap' },
         { icon: 'fa-file-code', label: '', left: '```\n', right: '\n```', title: t`Status block`, action: 'wrap' },
         { icon: 'fa-list-ul', label: '', left: '- ', right: '', title: t`Bullet list`, action: 'prefix' },

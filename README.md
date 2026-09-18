@@ -17,7 +17,7 @@ Wrap the selection in `**bold**`, turn the current line into a `> quote`, or ope
 - **Reaches the message you are editing** — the buttons act on whichever box your cursor was last in, so they work while you rewrite a reply, not just in the input line.
 - **Live preview** — every row shows what you will get, with `|` marking where the cursor lands.
 - **Drag to reorder**, toggle a button off without deleting it, and fold extra buttons into a `...` menu to keep the toolbar short.
-- **Ready-made buttons** — pick from the ones a roleplay actually uses: underline, a status block, a bullet list, a `---` scene break, and the `{{user}}`, `{{char}}` and `{{roll:d20}}` macros.
+- **Ready-made buttons** — pick from the ones a roleplay actually uses: `***strong emphasis***`, an inline `(OOC: )` note, underline, a status block, a bullet list, a `---` scene break, and the `{{user}}`, `{{char}}` and `{{roll:d20}}` macros.
 - **Share a set** — export your buttons to a `.json` file and import someone else's, either replacing your list or adding to the end.
 - **Gets out of the way** — optionally hide the toolbar until you tap the message box, so it does not hold a row on a small screen.
 - **Localized** — English by default, Korean included.
