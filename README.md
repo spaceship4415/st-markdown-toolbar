@@ -21,6 +21,7 @@ Wrap the selection in `**bold**`, turn the current line into a `> quote`, or ope
 - **Ready-made buttons** — pick from the ones a roleplay actually uses: `***strong emphasis***`, an inline `(OOC: )` note, underline, a status block, a bullet list, a `---` scene break, and the `{{user}}`, `{{char}}` and `{{roll:d20}}` macros.
 - **Share a set** — export your buttons to a `.json` file and import someone else's, either replacing your list or adding to the end.
 - **Gets out of the way** — optionally hide the toolbar until you tap the message box, so it does not hold a row on a small screen.
+- **Press and hold a button** to see what it is. A phone shows no tooltip, so an icon on its own gives nothing away.
 - **Localized** — English by default, Korean included.
 
 ## Install

@@ -50,6 +50,9 @@
 
 #custom-md-toolbar button {
     width: auto;
+    /* 길게 눌러 이름을 볼 때 브라우저가 글자 선택이나 제 메뉴를 띄우지 않게 한다 */
+    -webkit-touch-callout: none;
+    user-select: none;
     /* 아이콘 버튼끼리 폭이 들쭉날쭉하지 않게 최소 폭을 준다 (글자 버튼은 그만큼 더 넓어짐) */
     min-width: var(--qsg-button-min-width);
     max-width: var(--qsg-button-max-width);

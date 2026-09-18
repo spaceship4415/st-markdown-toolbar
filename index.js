@@ -365,6 +365,46 @@ function fitMenuWidth(menu) {
     element.style.width = `${Math.ceil(right - left + trailing)}px`;
 }
 
+// 모바일에는 title 툴팁이 없어서, 아이콘만 있는 버튼은 눌러 보기 전에는 뭔지 알 수 없다.
+// 길게 누르면 이름을 잠깐 띄우고, 손을 뗄 때 따라오는 클릭은 흘려보낸다.
+// 이 함수를 부른 뒤에 click 을 걸어야 흘려보내기가 먼저 걸린다
+function attachLongPressName(el, getName) {
+    let timer = null;
+    let fired = false;
+    let origin = null;
+
+    const stop = () => { clearTimeout(timer); timer = null; };
+
+    el.on('touchstart', event => {
+        const touch = event.originalEvent?.touches?.[0];
+        origin = touch ? { x: touch.clientX, y: touch.clientY } : null;
+        fired = false;
+
+        timer = setTimeout(() => {
+            fired = true;
+            const name = getName();
+            if (name && typeof toastr !== 'undefined') toastr.info(name, '', { timeOut: 2000 });
+        }, 500);
+    });
+
+    // 손가락은 가만히 둬도 미세하게 흔들린다. 조금 움직인 정도로는 취소하지 않는다
+    el.on('touchmove', event => {
+        const touch = event.originalEvent?.touches?.[0];
+        if (!origin || !touch) return stop();
+        if (Math.hypot(touch.clientX - origin.x, touch.clientY - origin.y) > 10) stop();
+    });
+
+    el.on('touchend touchcancel', stop);
+
+    el.on('click', event => {
+        if (!fired) return;
+        // 이름을 보려던 것이지 누르려던 것이 아니다
+        fired = false;
+        event.stopImmediatePropagation();
+        event.preventDefault();
+    });
+}
+
 function makeToolbarButton(btn) {
     const el = $('<button type="button" class="menu_button text_button"></button>');
     // 아이콘만 있는 버튼은 화면 낭독기에 읽을 것이 없다. title 은 읽히지 않으므로 따로 단다.
@@ -372,6 +412,7 @@ function makeToolbarButton(btn) {
     const name = btn.title?.trim() || btn.label?.trim() || btn.left || '';
     el.attr({ title: btn.title || '', 'aria-label': name });
     applyButtonContent(el, btn);
+    attachLongPressName(el, () => name);
     el.on('click', () => runButton(btn, getActiveTextarea()));
     return el;
 }
@@ -965,9 +1006,13 @@ function renderSettingsUI() {
     // 아이콘만 있는 버튼은 화면 낭독기에 읽을 것이 없으므로 이름을 따로 달아 준다
     function makeIconAction(icon, label) {
         // 글리프를 <i> 에 담는 이유는 넘침 버튼과 같다
-        return $('<button type="button" class="menu_button qsg-quiet-button"></button>')
+        const el = $('<button type="button" class="menu_button qsg-quiet-button"></button>')
             .attr({ title: label, 'aria-label': label })
             .append($('<i></i>').addClass('fa-solid').addClass(icon));
+
+        // 부르는 쪽이 click 을 걸기 전에 먼저 붙여 둔다
+        attachLongPressName(el, () => label);
+        return el;
     }
 
     const addBtn = $('<button type="button" class="menu_button"></button>').text(t`+ Add button`);
