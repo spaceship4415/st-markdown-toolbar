@@ -663,6 +663,9 @@ function renderSettingsUI() {
                             <div class="qsg-name"></div>
                             <div class="qsg-preview"></div>
                         </div>
+                        <label class="checkbox_label qsg-enable-toggle">
+                            <input type="checkbox" class="qsg-enabled" ${btn.enabled === false ? '' : 'checked'}/>
+                        </label>
                         <div class="qsg-expand fa-solid fa-chevron-down"></div>
                     </div>
                     <div class="qsg-item-detail">
@@ -694,10 +697,6 @@ function renderSettingsUI() {
                             <code class="qsg-preview qsg-preview-lg"></code>
                         </div>
                         <div class="qsg-field qsg-detail-foot">
-                            <label class="checkbox_label">
-                                <input type="checkbox" class="qsg-enabled" ${btn.enabled === false ? '' : 'checked'}/>
-                                <span class="qsg-label-use"></span>
-                            </label>
                             <button type="button" class="menu_button qsg-delete"></button>
                         </div>
                     </div>
@@ -717,7 +716,7 @@ function renderSettingsUI() {
             item.find('.qsg-label-symbols').text(t`Symbols`);
             item.find('.qsg-right').attr('placeholder', t`after`);
             item.find('.qsg-label-result').text(t`You get`);
-            item.find('.qsg-label-use').text(t`Use this button`);
+            item.find('.qsg-enable-toggle').attr({ title: t`Use this button`, 'aria-label': t`Use this button` });
             item.find('.qsg-delete').text(t`Delete`);
 
             function refreshItem() {
@@ -791,7 +790,7 @@ function renderSettingsUI() {
 
             // 요약 줄 아무 곳이나 눌러서 상세 펼치기 (드래그 핸들과 아이콘 버튼 제외)
             item.find('.qsg-item-head').on('click', function(e) {
-                if ($(e.target).closest('.drag-handle, .qsg-icon').length) return;
+                if ($(e.target).closest('.drag-handle, .qsg-icon, .qsg-enable-toggle').length) return;
 
                 item.toggleClass('qsg-item-open');
                 item.find('.qsg-item-detail').stop().slideToggle(150);
