@@ -297,9 +297,15 @@
     }
 }
 
-/* 켜기/끄기가 요약 줄로 올라가서 이 줄에는 삭제만 남는다 */
+/* 복제는 왼쪽, 삭제는 오른쪽. 되돌릴 수 있는 것과 없는 것을 떼어 놓는다 */
 .custom-md-settings .qsg-detail-foot {
-    justify-content: flex-end;
+    justify-content: space-between;
+}
+
+.custom-md-settings .qsg-duplicate {
+    width: auto;
+    margin: 0;
+    white-space: nowrap;
 }
 
 .custom-md-settings .qsg-enable-toggle {

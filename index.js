@@ -761,6 +761,7 @@ function renderSettingsUI() {
                             <button type="button" class="menu_button qsg-move qsg-move-bottom"><i class="fa-solid fa-angles-down"></i></button>
                         </div>
                         <div class="qsg-field qsg-detail-foot">
+                            <button type="button" class="menu_button qsg-quiet-button qsg-duplicate"></button>
                             <button type="button" class="menu_button qsg-delete"></button>
                         </div>
                     </div>
@@ -783,6 +784,31 @@ function renderSettingsUI() {
             item.find('.qsg-enable-toggle').attr({ title: t`Use this button`, 'aria-label': t`Use this button` });
             item.find('.qsg-delete').text(t`Delete`);
             item.find('.qsg-label-move').text(t`Order`);
+            item.find('.qsg-duplicate').text(t`Duplicate`);
+
+            // 비슷한 버튼을 만들 때 처음부터 다시 채우지 않아도 되게. 바로 아래에 붙여 둔다
+            item.find('.qsg-duplicate').on('click', () => {
+                const index = Number(item.attr('data-index'));
+                const source = settings.buttons[index];
+                if (!source) return;
+
+                const name = source.title?.trim();
+                settings.buttons.splice(index + 1, 0, {
+                    ...source,
+                    id: Date.now(),
+                    title: name ? t`${name} copy` : '',
+                });
+
+                saveSettingsDebounced();
+                renderToolbar();
+                refreshList();
+
+                // 고치려고 복제한 것이므로 펼쳐서 보여 준다
+                const added = listContainer.children('.qsg-item').eq(index + 1);
+                added.addClass('qsg-item-open');
+                added.find('.qsg-item-detail').show();
+                added[0]?.scrollIntoView({ block: 'nearest' });
+            });
 
             const moves = [
                 ['.qsg-move-top', t`Move to top`, () => 0],

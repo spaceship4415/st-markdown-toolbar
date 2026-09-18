@@ -35,6 +35,8 @@
     "Move down": "아래로",
     "Move to bottom": "맨 아래로",
     "Use this button": "이 버튼 사용",
+    "Duplicate": "복제",
+    "${0} copy": "${0} 복사본",
     "Delete": "삭제",
     "Cancel": "취소",
     "Deleted ${0}": "'${0}' 삭제됨",

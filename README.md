@@ -45,6 +45,7 @@ Extensions → **Markdown Toolbar**.
 Open a row to set its **name** (the tooltip), **icon or custom label**, **insert mode** and **symbols**.
 A button with no symbols does nothing, so it is marked in the list and left out of the toolbar.
 Deleting one leaves a message you can tap to put it back where it was.
+Duplicating one drops a copy right below it, opened and ready to change.
 Symbols may span lines — a code block or a table needs to. Type `
 ` where the line should break;
 the field shows it that way because a one-line box cannot hold a real line break.
