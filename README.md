@@ -11,6 +11,7 @@ Wrap the selection in `**bold**`, turn the current line into a `> quote`, or ope
   - *at the start of this line* — `> `, `- `, `# `; press again to undo
   - *at the start of a new line* — OOC notes, `---` scene breaks
 - **Icons chosen for you** — type a symbol and a matching Font Awesome icon is suggested. Pick a different one from the built-in icon picker, or show an emoji or a short label instead.
+- **Reaches the message you are editing** — the buttons act on whichever box your cursor was last in, so they work while you rewrite a reply, not just in the input line.
 - **Live preview** — every row shows what you will get, with `|` marking where the cursor lands.
 - **Drag to reorder**, toggle a button off without deleting it, and fold extra buttons into a `...` menu to keep the toolbar short.
 - **Localized** — English by default, Korean included.

@@ -279,8 +279,27 @@ function appendLine(textarea, prefix) {
     textarea.setSelectionRange(cursor, cursor);
 }
 
-function runButton(btn) {
-    const textarea = document.getElementById('send_textarea');
+// 커서가 마지막으로 놓였던 입력칸. 메시지를 고쳐 쓰는 중이면 그 편집창이 된다
+let lastFocused = null;
+
+// 툴바가 손댈 곳. 고쳐 쓰던 편집창은 편집이 끝나면 통째로 사라지므로 그때는 입력창으로 돌아간다
+function getActiveTextarea() {
+    return lastFocused?.isConnected ? lastFocused : document.getElementById('send_textarea');
+}
+
+// ST 는 입력창과 메시지 편집창을 같은 서식 대상으로 친다 (양쪽 다 mdHotkeys 가 붙는다).
+// 툴바도 같이 따라가도록, 커서가 놓인 쪽을 기억해 둔다
+function watchFocusedTextarea() {
+    document.addEventListener('focusin', event => {
+        const el = event.target;
+        if (!(el instanceof HTMLTextAreaElement)) return;
+        if (el.id !== 'send_textarea' && !el.classList.contains('edit_textarea')) return;
+
+        lastFocused = el;
+    });
+}
+
+function runButton(btn, textarea) {
     if (!textarea) return;
 
     if (btn.action === 'prefix') {
@@ -315,7 +334,7 @@ function makeToolbarButton(btn) {
     const el = $('<button type="button" class="menu_button text_button"></button>');
     el.attr('title', btn.title || '');
     applyButtonContent(el, btn);
-    el.on('click', () => runButton(btn));
+    el.on('click', () => runButton(btn, getActiveTextarea()));
     return el;
 }
 
@@ -362,6 +381,10 @@ function renderToolbar() {
         wrapper.append(trigger, menu);
         toolbar.append(wrapper);
     }
+
+    // 버튼을 눌러도 쓰던 입력칸에서 커서가 빠져나가지 않게 한다.
+    // 고쳐 쓰던 편집창을 대상으로 삼을 수 있는 건 이 덕분이다
+    toolbar.on('mousedown', event => event.preventDefault());
 
     // #send_form 은 order 로 줄을 쌓는 wrap 플렉스다. 입력 줄(order 25) 위에 자기 줄을 차지하게 둔다
     $('#send_form').append(toolbar);
@@ -662,6 +685,7 @@ jQuery(async function() {
     await loadLocale();
     loadSettings();
     renderToolbar();
+    watchFocusedTextarea();
 
     const drawer = $(`
         <div class="inline-drawer">
