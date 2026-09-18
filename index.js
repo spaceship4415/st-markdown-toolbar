@@ -398,7 +398,10 @@ function renderToolbar() {
 
     if (hidden.length) {
         const wrapper = $('<div class="qsg-overflow-wrapper"></div>');
-        const trigger = $('<button type="button" class="menu_button fa-solid fa-ellipsis qsg-overflow-trigger"></button>');
+        // 글리프는 <i> 에 담는다. 글꼴을 <button> 에 직접 걸면, 테마가 button 의 글꼴을
+        // 덮어썼을 때 아이콘이 네모로 깨진다 (ST 도 아이콘 버튼을 div 나 i 로 만든다)
+        const trigger = $('<button type="button" class="menu_button qsg-overflow-trigger"></button>')
+            .append($('<i></i>').addClass('fa-solid fa-ellipsis'));
         const menu = $('<div class="qsg-overflow-menu qsg-off"></div>');
 
         trigger.attr({ title: t`More`, 'aria-label': t`More`, 'aria-expanded': 'false', 'aria-haspopup': 'true' });
@@ -862,9 +865,10 @@ function renderSettingsUI() {
 
     // 아이콘만 있는 버튼은 화면 낭독기에 읽을 것이 없으므로 이름을 따로 달아 준다
     function makeIconAction(icon, label) {
-        return $('<button type="button" class="menu_button fa-solid qsg-quiet-button"></button>')
-            .addClass(icon)
-            .attr({ title: label, 'aria-label': label });
+        // 글리프를 <i> 에 담는 이유는 넘침 버튼과 같다
+        return $('<button type="button" class="menu_button qsg-quiet-button"></button>')
+            .attr({ title: label, 'aria-label': label })
+            .append($('<i></i>').addClass('fa-solid').addClass(icon));
     }
 
     const addBtn = $('<button type="button" class="menu_button"></button>').text(t`+ Add button`);
