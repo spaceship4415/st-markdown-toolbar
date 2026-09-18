@@ -151,16 +151,77 @@ function replaceRange(textarea, start, end, text) {
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-// 선택한 글을 기호로 감싼다
-function wrapSelection(textarea, left, right) {
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selected = textarea.value.substring(start, end);
+// 커서가 단어 한가운데 있으면 그 단어의 범위를 돌려준다.
+// 줄 끝이나 띄어쓰기 옆이면 감쌀 단어가 없다고 본다
+function findWordAt(value, caret) {
+    const before = value[caret - 1];
+    const after = value[caret];
+    if (!before || !after || /\s/.test(before) || /\s/.test(after)) return null;
 
+    let start = caret;
+    let end = caret;
+
+    while (start > 0 && !/\s/.test(value[start - 1])) start--;
+    while (end < value.length && !/\s/.test(value[end])) end++;
+
+    return { start, end };
+}
+
+// 이미 감싸져 있으면 벗겨낼 범위를 돌려준다. 기호가 고른 글 안에 있을 수도 ('**글**' 를 통째로 선택),
+// 고른 글 바로 바깥에 있을 수도 ('**' 안쪽의 '글' 만 선택) 있어서 둘 다 본다
+function findWrapped(value, start, end, left, right) {
+    const inner = value.slice(start, end);
+
+    if (inner.length >= left.length + right.length && inner.startsWith(left) && inner.endsWith(right)) {
+        const text = inner.slice(left.length, inner.length - right.length);
+        // '*하나* 와 *둘*' 을 통째로 고른 경우. 양 끝만 떼면 가운데 기호가 짝을 잃으므로 그냥 감싼다
+        if (!(left && text.includes(left)) && !(right && text.includes(right))) {
+            return { start, end, text };
+        }
+    }
+
+    const outerStart = start - left.length;
+    if (outerStart >= 0 && value.startsWith(left, outerStart) && value.startsWith(right, end)) {
+        return { start: outerStart, end: end + right.length, text: inner };
+    }
+
+    return null;
+}
+
+// 선택한 글을 기호로 감싼다. 이미 감싸져 있으면 떼어낸다.
+// 고른 글이 없으면 커서가 놓인 단어를 대신 감싼다 (ST 의 Ctrl+B 와 같은 동작)
+function wrapSelection(textarea, left, right) {
+    const value = textarea.value;
+    const caret = textarea.selectionStart;
+    const hasSelection = caret !== textarea.selectionEnd;
+
+    const word = hasSelection ? null : findWordAt(value, caret);
+    const start = word ? word.start : caret;
+    const end = word ? word.end : textarea.selectionEnd;
+
+    const wrapped = findWrapped(value, start, end, left, right);
+
+    if (wrapped) {
+        replaceRange(textarea, wrapped.start, wrapped.end, wrapped.text);
+
+        // 고른 글이 있었으면 다시 고른 채로 둔다. 그래야 한 번 더 눌러 되감을 수 있다
+        if (hasSelection) {
+            textarea.setSelectionRange(wrapped.start, wrapped.start + wrapped.text.length);
+            return;
+        }
+
+        // 커서만 있었으면 앞 기호가 빠진 만큼 당겨서 쓰던 자리에 그대로 둔다
+        const limit = wrapped.start + wrapped.text.length;
+        const moved = Math.min(Math.max(caret - left.length, wrapped.start), limit);
+        textarea.setSelectionRange(moved, moved);
+        return;
+    }
+
+    const selected = value.slice(start, end);
     replaceRange(textarea, start, end, left + selected + right);
 
-    // 닫는 기호 바로 앞 (닫는 기호가 없으면 삽입한 내용 뒤)
-    const cursor = start + left.length + selected.length;
+    // 고른 글이 있었으면 닫는 기호 바로 앞, 아니면 앞 기호만큼만 밀어 쓰던 자리에 둔다
+    const cursor = hasSelection ? start + left.length + selected.length : caret + left.length;
     textarea.setSelectionRange(cursor, cursor);
 }
 
@@ -421,7 +482,7 @@ function renderSettingsUI() {
             }
 
             const ACTION_NOTES = {
-                wrap: () => t`For paired symbols like " or **. The second box can stay empty.`,
+                wrap: () => t`For paired symbols like " or **. Press again to undo. The second box can stay empty.`,
                 prefix: () => t`Turns the line you are on into a quote or a list item. Press again to undo.`,
                 newline: () => t`Starts a fresh line, for an OOC note or a --- scene break.`,
             };

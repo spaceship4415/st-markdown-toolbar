@@ -7,7 +7,7 @@ Wrap the selection in `**bold**`, turn the current line into a `> quote`, or ope
 
 - **Five buttons out of the box** — dialogue `"`, action `*`, emphasis `**`, strikethrough `~~`, OOC `> `.
 - **Three insert modes** per button:
-  - *around the selection* — paired symbols like `"` or `**`
+  - *around the selection* — paired symbols like `"` or `**`; press again to undo. With nothing selected, the word under the cursor is wrapped.
   - *at the start of this line* — `> `, `- `, `# `; press again to undo
   - *at the start of a new line* — OOC notes, `---` scene breaks
 - **Icons chosen for you** — type a symbol and a matching Font Awesome icon is suggested. Pick a different one from the built-in icon picker, or show an emoji or a short label instead.
