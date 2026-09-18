@@ -332,7 +332,10 @@ function fitMenuWidth(menu) {
 
 function makeToolbarButton(btn) {
     const el = $('<button type="button" class="menu_button text_button"></button>');
-    el.attr('title', btn.title || '');
+    // 아이콘만 있는 버튼은 화면 낭독기에 읽을 것이 없다. title 은 읽히지 않으므로 따로 단다.
+    // 이름을 안 지었으면 기호라도 읽히는 편이 아무 말도 없는 것보다 낫다
+    const name = btn.title?.trim() || btn.label?.trim() || btn.left || '';
+    el.attr({ title: btn.title || '', 'aria-label': name });
     applyButtonContent(el, btn);
     el.on('click', () => runButton(btn, getActiveTextarea()));
     return el;
@@ -340,7 +343,7 @@ function makeToolbarButton(btn) {
 
 function renderToolbar() {
     $('#custom-md-toolbar').remove();
-    $(document).off('click.qsgOverflow');
+    $(document).off('.qsgOverflow');
 
     const settings = extension_settings[MODULE_NAME];
     if (!settings.enabled) return;
@@ -363,20 +366,44 @@ function renderToolbar() {
         const trigger = $('<button type="button" class="menu_button fa-solid fa-ellipsis qsg-overflow-trigger"></button>');
         const menu = $('<div class="qsg-overflow-menu qsg-off"></div>');
 
-        trigger.attr('title', t`More`);
+        trigger.attr({ title: t`More`, 'aria-label': t`More`, 'aria-expanded': 'false', 'aria-haspopup': 'true' });
         hidden.forEach(btn => menu.append(makeToolbarButton(btn)));
+
+        function setMenuOpen(open) {
+            menu.toggleClass('qsg-off', !open);
+            trigger.attr('aria-expanded', String(open));
+            // 폭은 보이는 상태에서만 잴 수 있다
+            if (open) fitMenuWidth(menu);
+        }
 
         trigger.on('click', event => {
             event.stopPropagation();
+            setMenuOpen(menu.hasClass('qsg-off'));
+        });
 
-            const opening = menu.hasClass('qsg-off');
-            menu.toggleClass('qsg-off');
-            // 폭은 보이는 상태에서만 잴 수 있다
-            if (opening) fitMenuWidth(menu);
+        // 마우스 없이도 메뉴 안으로 들어갈 수 있어야 한다.
+        // 툴바는 mousedown 을 막아 두지만 키보드로 연 경우에는 포커스를 옮겨 준다
+        trigger.on('keydown', event => {
+            if (event.key !== 'ArrowDown' && event.key !== 'Enter' && event.key !== ' ') return;
+            if (event.key === 'ArrowDown') event.preventDefault();
+            if (menu.hasClass('qsg-off')) setMenuOpen(true);
+            if (event.key === 'ArrowDown') menu.children('button').first().trigger('focus');
+        });
+
+        // 눌러서 연 경우에는 포커스가 입력창에 남으므로, Esc 는 툴바가 아니라 문서에서 받아야 한다.
+        // 메뉴가 열려 있을 때만 가로채서, ST 가 Esc 로 하는 다른 일을 방해하지 않는다
+        $(document).on('keydown.qsgOverflow', event => {
+            if (event.key !== 'Escape' || menu.hasClass('qsg-off')) return;
+
+            event.stopPropagation();
+            const inside = $.contains(menu[0], document.activeElement);
+            setMenuOpen(false);
+            // 메뉴 안에 있던 포커스만 되돌린다. 입력창에 있었다면 건드리지 않는다
+            if (inside) trigger.trigger('focus');
         });
 
         // 바깥을 누르면 닫는다
-        $(document).on('click.qsgOverflow', () => menu.addClass('qsg-off'));
+        $(document).on('click.qsgOverflow', () => setMenuOpen(false));
 
         wrapper.append(trigger, menu);
         toolbar.append(wrapper);
