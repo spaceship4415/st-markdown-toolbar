@@ -1,0 +1,11 @@
+{
+    "display_name": "Markdown Toolbar",
+    "loading_order": 10,
+    "js": "index.js",
+    "css": "style.css",
+    "requires": [],
+    "optional": [],
+    "author": "spaceship4415",
+    "version": "1.0.0",
+    "license": "MIT"
+}
