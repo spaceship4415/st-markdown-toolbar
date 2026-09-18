@@ -615,6 +615,28 @@ async function readButtonFile(file) {
     return { buttons, visibleCount: Number(data.visibleCount) || 0 };
 }
 
+// 삭제는 이 확장에서 유일하게 되돌릴 수 없는 동작이다. 확인창을 눌러 놓고 곧바로
+// 아차 하는 경우가 있어서, 잠깐 물러설 자리를 만들어 둔다.
+// toastr 는 ST 가 <script> 로 띄워 둔 전역이고 escapeHtml 을 켜 두어서 이름을 그대로 넣어도 된다
+function offerUndo(removed, index, refreshList) {
+    if (typeof toastr === 'undefined' || !removed) return;
+
+    const settings = extension_settings[MODULE_NAME];
+    const name = removed.title?.trim() || t`this button`;
+
+    toastr.info(t`Tap to undo.`, t`Deleted ${name}`, {
+        timeOut: 10000,
+        onclick: () => {
+            // 지운 뒤 목록이 더 바뀌었을 수 있으니 자리를 범위 안으로 맞춘다
+            const at = Math.min(index, settings.buttons.length);
+            settings.buttons.splice(at, 0, removed);
+            saveSettingsDebounced();
+            renderToolbar();
+            refreshList();
+        },
+    });
+}
+
 function renderSettingsUI() {
     const settings = extension_settings[MODULE_NAME];
     const container = $('<div class="custom-md-settings"></div>');
@@ -814,25 +836,16 @@ function renderSettingsUI() {
                 renderToolbar();
             });
 
-            item.find('.qsg-delete').on('click', async () => {
-                const name = btn.title || t`this button`;
-                // 문자열로 넘기면 ST 가 innerHTML 로 그린다. 요소로 만들어 본문을 텍스트로 고정
-                const message = document.createElement('div');
-                message.textContent = t`Delete ${name}?`;
-
-                const confirmed = await callGenericPopup(
-                    message,
-                    POPUP_TYPE.CONFIRM,
-                    '',
-                    { okButton: t`Delete`, cancelButton: t`Cancel` },
-                );
-
-                if (confirmed !== POPUP_RESULT.AFFIRMATIVE) return;
-
-                settings.buttons.splice(Number(item.attr('data-index')), 1);
+            // 확인창은 두지 않는다. 묻고 나서 지우는 대신 바로 지우고 되돌릴 자리를 준다.
+            // 흔한 경우는 한 번에 끝나고, 잘못 눌렀으면 토스트로 물린다
+            item.find('.qsg-delete').on('click', () => {
+                const index = Number(item.attr('data-index'));
+                const [removed] = settings.buttons.splice(index, 1);
                 saveSettingsDebounced();
                 renderToolbar();
                 refreshList();
+
+                offerUndo(removed, index, refreshList);
             });
 
             listContainer.append(item);
