@@ -131,8 +131,16 @@
     padding: 2px 4px;
 }
 
+/* 기호가 '*' 나 '**' 뿐이던 때는 56px 로 충분했지만, {{roll:d20}} 이나 상태창의 ```
+   같은 것들은 그 폭에 다 보이지 않는다. 남는 자리를 나눠 갖게 두고 최소 폭만 지킨다.
+   확장 설정 패널이 좁아서, 이름표까지 같은 줄에 두면 나눠 가져도 모자란다 */
+.custom-md-settings .qsg-field > span.qsg-label-symbols {
+    flex: 1 1 100%;
+}
+
 .custom-md-settings .qsg-field > input.qsg-symbol {
-    flex: 0 0 56px;
+    flex: 1 1 56px;
+    min-width: 56px;
     text-align: center;
 }
 
@@ -360,6 +368,54 @@
 
 .custom-md-settings .qsg-list-actions .qsg-quiet-button:hover {
     opacity: 1;
+}
+
+/* ---------- 고를 수 있는 버튼 목록 ---------- */
+.qsg-preset-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+}
+
+.qsg-preset-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* 전체 선택 줄은 아래 항목들과 성격이 달라 선으로 떼어 둔다 */
+.qsg-preset-all {
+    margin-bottom: 4px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--SmartThemeBorderColor);
+    opacity: 0.8;
+}
+
+.qsg-preset-row:hover {
+    background-color: var(--white20a);
+}
+
+.qsg-preset-row > i {
+    flex: 0 0 1.2em;
+    text-align: center;
+    opacity: 0.8;
+}
+
+.qsg-preset-name {
+    flex: 1 1 auto;
+}
+
+.qsg-preset-preview {
+    flex: 0 1 auto;
+    opacity: 0.6;
+    font-size: 0.85em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* ---------- 툴바 넘침 메뉴 ---------- */

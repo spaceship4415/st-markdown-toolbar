@@ -85,7 +85,6 @@ function loadSettings() {
         settings.hideWhenIdle = false;
     }
 
-
     // 설정 파일이 손상돼 있어도 확장이 통째로 죽지는 않게
     if (!Array.isArray(settings.buttons)) {
         settings.buttons = getDefaultButtons();
@@ -126,16 +125,29 @@ function isBlankButton(btn) {
     return !btn.left && !btn.right;
 }
 
+// 기호에 줄바꿈이 들어갈 수 있는데 (코드 블록, 표) <input type="text"> 는 줄바꿈을 담지 못한다.
+// 칸에서는 눈에 보이는 두 글자로 보여 주고, 설정에 넣을 때 되돌린다.
+// 이렇게 하지 않으면 그 칸을 한 번 건드리는 것만으로 줄바꿈이 조용히 사라진다
+function toField(value) {
+    return (value || '').replace(/\n/g, '\\n');
+}
+
+function fromField(value) {
+    return (value || '').replace(/\\n/g, '\n');
+}
+
 // 삽입 결과 미리보기 ('|' 는 삽입 후 커서가 놓이는 자리)
 function getInsertPreview(btn) {
     const sample = t`text`;
     const left = btn.left || '';
     const right = btn.right || '';
 
-    if (btn.action === 'prefix') return `${left}${sample}`;
-    if (btn.action === 'newline') return `↵${left}|`;
+    const shown = btn.action === 'prefix' ? `${left}${sample}`
+        : btn.action === 'newline' ? `↵${left}|`
+        : `${left}${sample}|${right}`;
 
-    return `${left}${sample}|${right}`;
+    // 한 줄로 보여 줘야 목록이 흐트러지지 않는다
+    return shown.replace(/\n/g, '↵');
 }
 
 // textarea.value 에 직접 대입하면 브라우저의 실행취소 기록이 날아가서 Ctrl+Z 가 먹지 않는다.
@@ -441,6 +453,99 @@ function renderToolbar() {
     updateToolbarVisibility();
 }
 
+// ---------- 고를 수 있는 버튼 모음 ----------
+
+// 빈 버튼을 만들고 기호를 직접 치는 대신 골라 쓰라고 두는 것들.
+// 이름은 고른 시점의 언어로 굳으므로 t 로 감싼다 (기본 버튼과 같은 방식)
+function getPresetButtons() {
+    return [
+        { icon: 'fa-underline', label: '', left: '__', right: '__', title: t`Underline`, action: 'wrap' },
+        { icon: 'fa-file-code', label: '', left: '```\n', right: '\n```', title: t`Status block`, action: 'wrap' },
+        { icon: 'fa-list-ul', label: '', left: '- ', right: '', title: t`Bullet list`, action: 'prefix' },
+        { icon: 'fa-minus', label: '', left: '\n---\n', right: '', title: t`Scene break`, action: 'newline' },
+        { icon: 'fa-user', label: '', left: '{{user}}', right: '', title: t`Your name`, action: 'wrap' },
+        { icon: 'fa-masks-theater', label: '', left: '{{char}}', right: '', title: t`Character name`, action: 'wrap' },
+        { icon: 'fa-dice-d20', label: '', left: '{{roll:d20}}', right: '', title: t`Dice roll`, action: 'wrap' },
+    ];
+}
+
+// 고르는 창. 한 줄에 아이콘과 이름, 삽입 결과 미리보기를 같이 보여 준다
+async function pickPresets() {
+    const list = getPresetButtons();
+    const chosen = new Set();
+
+    const dom = document.createElement('div');
+    dom.className = 'qsg-preset-list';
+
+    const boxes = [];
+
+    // 하나씩 누르지 않아도 되게. 다 골라 놓으면 '전체 해제' 로 바뀐다
+    const allRow = document.createElement('label');
+    allRow.className = 'qsg-preset-row qsg-preset-all';
+    const allBox = document.createElement('input');
+    allBox.type = 'checkbox';
+    const allName = document.createElement('span');
+    allName.className = 'qsg-preset-name';
+    allName.textContent = t`Select all`;
+    allRow.append(allBox, allName);
+    dom.append(allRow);
+
+    function syncAll() {
+        const picked = boxes.filter(b => b.checked).length;
+        allBox.checked = picked === boxes.length;
+        // 일부만 골랐을 때는 중간 상태로 둬서 '지금 누르면 뭐가 되는지' 를 흐리지 않는다
+        allBox.indeterminate = picked > 0 && picked < boxes.length;
+    }
+
+    allBox.addEventListener('change', () => {
+        boxes.forEach((box, index) => {
+            box.checked = allBox.checked;
+            allBox.checked ? chosen.add(index) : chosen.delete(index);
+        });
+        allBox.indeterminate = false;
+    });
+
+    list.forEach((preset, index) => {
+        const row = document.createElement('label');
+        row.className = 'qsg-preset-row';
+
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        boxes.push(box);
+        box.addEventListener('change', () => {
+            box.checked ? chosen.add(index) : chosen.delete(index);
+            syncAll();
+        });
+
+        const icon = document.createElement('i');
+        icon.className = `fa-solid ${getIconClass(preset)}`;
+
+        const name = document.createElement('span');
+        name.className = 'qsg-preset-name';
+        name.textContent = preset.title;
+
+        const preview = document.createElement('code');
+        preview.className = 'qsg-preset-preview';
+        preview.textContent = getInsertPreview(preset);
+
+        row.append(box, icon, name, preview);
+        dom.append(row);
+    });
+
+    const result = await callGenericPopup(dom, POPUP_TYPE.CONFIRM, '', {
+        okButton: t`Add selected`,
+        cancelButton: t`Cancel`,
+    });
+
+    if (result !== POPUP_RESULT.AFFIRMATIVE) return [];
+
+    return [...chosen].sort((a, b) => a - b).map((index, order) => ({
+        ...list[index],
+        id: Date.now() + order,
+        enabled: true,
+    }));
+}
+
 // ---------- 버튼 세트 주고받기 ----------
 
 // 남이 만든 파일을 읽어들이므로, 우리 파일이 맞는지 볼 표시를 하나 넣어 둔다
@@ -575,8 +680,8 @@ function renderSettingsUI() {
                         </div>
                         <div class="qsg-field">
                             <span class="qsg-label-symbols"></span>
-                            <input type="text" class="text_pole qsg-symbol" value="${escapeAttr(btn.left)}" data-field="left">
-                            <input type="text" class="text_pole qsg-symbol qsg-right" value="${escapeAttr(btn.right)}" data-field="right">
+                            <input type="text" class="text_pole qsg-symbol" value="${escapeAttr(toField(btn.left))}" data-field="left">
+                            <input type="text" class="text_pole qsg-symbol qsg-right" value="${escapeAttr(toField(btn.right))}" data-field="right">
                             <small class="qsg-note qsg-symbol-note"></small>
                         </div>
                         <div class="qsg-field qsg-preview-row">
@@ -691,7 +796,8 @@ function renderSettingsUI() {
                 const field = $(this).data('field');
                 if (!['title', 'label', 'left', 'right'].includes(field)) return;
 
-                btn[field] = $(this).val();
+                const raw = String($(this).val());
+                btn[field] = (field === 'left' || field === 'right') ? fromField(raw) : raw;
                 refreshItem();
                 saveSettingsDebounced();
                 renderToolbar();
@@ -804,6 +910,19 @@ function renderSettingsUI() {
         refreshList();
     });
     sideActions.append(resetBtn);
+
+    const presetBtn = makeIconAction('fa-book-open', t`Pick from ready-made buttons`);
+    presetBtn.on('click', async () => {
+        const picked = await pickPresets();
+        if (!picked.length) return;
+
+        settings.buttons = settings.buttons.concat(picked);
+        saveSettingsDebounced();
+        renderToolbar();
+        refreshList();
+        listContainer.children('.qsg-item').last()[0]?.scrollIntoView({ block: 'nearest' });
+    });
+    sideActions.append(presetBtn);
 
     const exportBtn = makeIconAction('fa-file-export', t`Export`);
     exportBtn.on('click', () => download(buildExportFile(), EXPORT_NAME, 'application/json'));

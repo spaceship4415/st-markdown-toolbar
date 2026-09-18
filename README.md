@@ -9,13 +9,17 @@ Wrap the selection in `**bold**`, turn the current line into a `> quote`, or ope
 - **Three insert modes** per button:
   - *around the selection* — paired symbols like `"` or `**`; press again to undo. With nothing selected, the word under the cursor is wrapped.
   - *at the start of this line* — `> `, `- `, `# `; press again to undo
-  - *at the start of a new line* — OOC notes, `---` scene breaks
+  - *at the start of a new line* — OOC notes, `---` scene breaks. A rule needs a blank line above it,
+    or Markdown reads the line before as a heading instead, so write the symbols as `
+---
+`
 - **Icons chosen for you** — type a symbol and a matching Font Awesome icon is suggested. Pick a different one from the built-in icon picker, or show an emoji or a short label instead.
 - **Reaches the message you are editing** — the buttons act on whichever box your cursor was last in, so they work while you rewrite a reply, not just in the input line.
 - **Live preview** — every row shows what you will get, with `|` marking where the cursor lands.
 - **Drag to reorder**, toggle a button off without deleting it, and fold extra buttons into a `...` menu to keep the toolbar short.
-- **Gets out of the way** — optionally hide the toolbar until you tap the message box, so it does not hold a row on a small screen.
+- **Ready-made buttons** — pick from the ones a roleplay actually uses: underline, a status block, a bullet list, a `---` scene break, and the `{{user}}`, `{{char}}` and `{{roll:d20}}` macros.
 - **Share a set** — export your buttons to a `.json` file and import someone else's, either replacing your list or adding to the end.
+- **Gets out of the way** — optionally hide the toolbar until you tap the message box, so it does not hold a row on a small screen.
 - **Localized** — English by default, Korean included.
 
 ## Install
@@ -34,10 +38,14 @@ Extensions → **Markdown Toolbar**.
 | Show only while writing | Keeps the toolbar hidden until the message box or a message you are editing has the cursor |
 | Buttons shown in the toolbar | `0` shows them all; otherwise the rest move into a `...` menu |
 | Buttons | Add, edit, reorder, disable or delete individual buttons |
+| Ready-made buttons | Pick from a short list of roleplay-minded buttons and add them to yours |
 | Export / Import | Save the button set to a file, or load one. Importing asks whether to replace your list or add to the end |
 
 Open a row to set its **name** (the tooltip), **icon or custom label**, **insert mode** and **symbols**.
 A button with no symbols does nothing, so it is marked in the list and left out of the toolbar.
+Symbols may span lines — a code block or a table needs to. Type `
+` where the line should break;
+the field shows it that way because a one-line box cannot hold a real line break.
 
 ## Translating
 
