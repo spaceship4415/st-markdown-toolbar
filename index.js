@@ -656,6 +656,32 @@ async function readButtonFile(file) {
     return { buttons, visibleCount: Number(data.visibleCount) || 0 };
 }
 
+// 목록을 통째로 갈아엎는 동작은 버튼 하나를 지우는 것보다 잃는 게 훨씬 크다.
+// 작은 실수만 물러 주고 큰 실수는 못 물러 주면 순서가 거꾸로다
+function takeListSnapshot() {
+    const settings = extension_settings[MODULE_NAME];
+    // 목록은 통째로 교체되므로 얕은 복사로 충분하다 (버튼 객체 자체는 건드리지 않는다)
+    return { buttons: settings.buttons.slice(), visibleCount: settings.visibleCount };
+}
+
+function offerListUndo(snapshot, label, refreshList, countInput) {
+    if (typeof toastr === 'undefined') return;
+
+    const settings = extension_settings[MODULE_NAME];
+
+    toastr.info(t`Tap to undo.`, label, {
+        timeOut: 10000,
+        onclick: () => {
+            settings.buttons = snapshot.buttons;
+            settings.visibleCount = snapshot.visibleCount;
+            countInput?.val(settings.visibleCount);
+            saveSettingsDebounced();
+            renderToolbar();
+            refreshList();
+        },
+    });
+}
+
 // 손잡이를 끄는 건 모바일에서 0.75초 길게 눌러야 시작되고, 목록이 길면 끌고 가기도 번거롭다.
 // 자리를 옮기는 또 다른 길을 상세 패널에 둔다
 function moveButtonTo(item, listContainer, target) {
@@ -1052,10 +1078,13 @@ function renderSettingsUI() {
 
         if (confirmed !== POPUP_RESULT.AFFIRMATIVE) return;
 
+        const snapshot = takeListSnapshot();
         settings.buttons = getDefaultButtons();
         saveSettingsDebounced();
         renderToolbar();
         refreshList();
+
+        offerListUndo(snapshot, t`Restored the default buttons`, refreshList, countRow.find('input'));
     });
     sideActions.append(resetBtn);
 
@@ -1110,13 +1139,18 @@ function renderSettingsUI() {
             customButtons: [{ text: t`Add to the end`, result: POPUP_RESULT.CUSTOM1 }],
         });
 
+        const snapshot = takeListSnapshot();
+        let label;
+
         if (choice === POPUP_RESULT.AFFIRMATIVE) {
             settings.buttons = loaded.buttons;
             // 몇 개를 펼쳐 둘지도 세트를 만든 사람이 정한 값이 있다
             settings.visibleCount = loaded.visibleCount;
             countRow.find('input').val(settings.visibleCount);
+            label = t`Replaced the list`;
         } else if (choice === POPUP_RESULT.CUSTOM1) {
             settings.buttons = settings.buttons.concat(loaded.buttons);
+            label = t`Added ${count} buttons`;
         } else {
             return;
         }
@@ -1124,6 +1158,8 @@ function renderSettingsUI() {
         saveSettingsDebounced();
         renderToolbar();
         refreshList();
+
+        offerListUndo(snapshot, label, refreshList, countRow.find('input'));
     });
 
     sideActions.append(importBtn, fileInput);
