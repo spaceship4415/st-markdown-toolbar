@@ -49,6 +49,11 @@ Drop a `<locale>.json` next to `i18n/ko-kr.json` — keys are the English string
 The toolbar reads a handful of custom properties, so most tweaks are one line in
 **User Settings → Custom CSS** — no need to fight the extension's own rules.
 
+On a touch device the buttons grow to roughly the size of SillyTavern's own
+buttons, so they are not the smallest thing on the screen to hit. Three of the
+properties below have a second default for that case; setting them yourself
+overrides both.
+
 ```css
 :root {
     --qsg-toolbar-justify: flex-start;  /* line the buttons up on the left */
@@ -62,14 +67,14 @@ The toolbar reads a handful of custom properties, so most tweaks are one line in
 | --- | --- | --- |
 | `--qsg-toolbar-order` | `20` | `#send_form` stacks its rows by `order`; the input row is `25`, so `30` moves the toolbar below it |
 | `--qsg-toolbar-justify` | `center` | Any `justify-content` value |
-| `--qsg-toolbar-gap` | `6px` | Space between buttons |
+| `--qsg-toolbar-gap` | `6px`, `8px` on touch | Space between buttons |
 | `--qsg-toolbar-padding` | `0 10px` | |
-| `--qsg-toolbar-margin` | `0 0 3px` | |
-| `--qsg-button-padding` | `3px 8px` | |
+| `--qsg-toolbar-margin` | `0 0 3px`, `0 0 5px` on touch | Gap to the input row below |
+| `--qsg-button-padding` | `3px 8px`, `9px 10px` on touch | What makes the button a comfortable size to tap |
 | `--qsg-button-min-width` | icon size + 18px | Keeps icon buttons an even width |
 | `--qsg-button-max-width` | `140px` | Keeps a long label from eating the row |
 | `--qsg-overflow-max-width` | `min(90vw, 320px)` | Where the `...` menu starts wrapping to a second row |
-| `--qsg-icon-size` | `16px` | Size of the Font Awesome glyph |
+| `--qsg-icon-size` | `16px` | Size of the icon inside a button, and what `--qsg-button-min-width` is measured from |
 
 For anything the properties do not cover, these hooks are stable:
 

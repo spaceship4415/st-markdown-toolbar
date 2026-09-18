@@ -1,4 +1,9 @@
-/* ---------- 사용자 커스텀 CSS 에서 덮어쓰라고 열어 둔 값들 ---------- */
+/* ---------- 사용자 커스텀 CSS 에서 덮어쓰라고 열어 둔 값들 ----------
+   확장의 스타일시트는 ST 가 사용자 Custom CSS 를 넣은 <style> 보다 뒤에 붙는다.
+   그냥 :root 로 두면 우선순위가 같아 나중에 온 이쪽이 이기고, 사용자가 덮어쓴 값이 먹지 않는다.
+   레이어에 넣으면 레이어 없는 선언(사용자 Custom CSS)이 순서와 무관하게 이긴다 */
+@layer qsg-defaults {
+
 :root {
     /* #send_form 은 order 로 줄을 쌓는다. 입력 줄은 25 라서 20 이면 위, 30 이면 아래 */
     --qsg-toolbar-order: 20;
@@ -13,6 +18,22 @@
     /* 더보기 메뉴가 줄바꿈을 시작하는 폭 */
     --qsg-overflow-max-width: min(90vw, 320px);
 }
+
+/* 손가락으로 누르는 기기에서는 버튼을 ST 의 다른 버튼(35px 안팎)만큼 키운다.
+   기본값으로 두면 높이 23px 로, 바로 아래 입력창(37px)보다 작아 잘못 눌리기 쉽다.
+   ST 는 레이아웃에 화면 너비를 쓰지만 이건 누르는 정확도의 문제라 포인터 종류로 가른다
+   (태블릿을 가로로 놓아 화면이 넓어져도 손가락인 건 그대로다).
+   아이콘은 그대로 두고 여백만 넓혀서, 눌리는 범위만 커지고 보이는 무게는 덜 달라지게 한다 */
+@media (pointer: coarse) {
+    :root {
+        --qsg-button-padding: 9px 10px;
+        --qsg-toolbar-gap: 8px;
+        /* 입력창을 잘못 누르지 않게 한 줄 사이를 조금 더 벌린다 */
+        --qsg-toolbar-margin: 0 0 5px;
+    }
+}
+
+} /* @layer qsg-defaults */
 
 /* ---------- 입력창 위 툴바 ---------- */
 #custom-md-toolbar {
@@ -47,6 +68,14 @@
     flex: 0 0 auto;
     width: var(--qsg-icon-size);
     height: var(--qsg-icon-size);
+}
+
+/* Font Awesome 은 아이콘을 <i> 로 그린다. 글자라서 크기는 font-size 로 잡아야 하고,
+   줄높이를 테마에 맡기면 글자 크기와 따로 놀아 버튼 높이가 들쭉날쭉해진다 */
+#custom-md-toolbar button > i {
+    flex: 0 0 auto;
+    font-size: var(--qsg-icon-size);
+    line-height: 1;
 }
 
 /* ---------- 설정창 공통 ---------- */
@@ -304,7 +333,7 @@
 #custom-md-toolbar .qsg-overflow-trigger {
     width: auto;
     margin: 0;
-    padding: 3px 8px;
+    padding: var(--qsg-button-padding);
 }
 
 .qsg-overflow-menu {
