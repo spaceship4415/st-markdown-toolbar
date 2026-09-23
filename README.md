@@ -1,5 +1,7 @@
 # Markdown Toolbar
 
+[한국어 가이드](README.ko.md)
+
 A row of one-tap formatting buttons right above the SillyTavern input box.
 Wrap the selection in `**bold**`, turn the current line into a `> quote`, or open a fresh `---` line — without reaching for the symbols.
 
@@ -10,9 +12,7 @@ Wrap the selection in `**bold**`, turn the current line into a `> quote`, or ope
   - *around the selection* — paired symbols like `"` or `**`; press again to undo. With nothing selected, the word under the cursor is wrapped.
   - *at the start of this line* — `> `, `- `, `# `; press again to undo
   - *at the start of a new line* — OOC notes, `---` scene breaks. A rule needs a blank line above it,
-    or Markdown reads the line before as a heading instead, so write the symbols as `
----
-`
+    or Markdown reads the line before as a heading instead, so write the symbols as `\n---\n`
 - **Icons chosen for you** — type a symbol and a matching Font Awesome icon is suggested. Pick a different one from the built-in icon picker, or show an emoji or a short label instead.
 - **Reaches the message you are editing** — the buttons act on whichever box your cursor was last in, so they work while you rewrite a reply, not just in the input line.
 - **Live preview** — every row shows what you will get, with `|` marking where the cursor lands.
@@ -48,8 +48,7 @@ A button with no symbols does nothing, so it is marked in the list and left out 
 Deleting one leaves a message you can tap to put it back where it was, and so does
 anything that replaces the whole list — restoring the defaults, or importing over it.
 Duplicating one drops a copy right below it, opened and ready to change.
-Symbols may span lines — a code block or a table needs to. Type `
-` where the line should break;
+Symbols may span lines — a code block or a table needs to. Type `\n` where the line should break;
 the field shows it that way because a one-line box cannot hold a real line break.
 
 ## Translating
